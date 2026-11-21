@@ -1,23 +1,33 @@
-<h1 align="center">Mac Systemo Monitor</h1>
+<p align="center"><img src="Resources/AppIcon.png" width="128" alt="HUD Systemo Monitor 圖示"></p>
+
+<h1 align="center">HUD Systemo Monitor</h1>
 <p align="center"><strong>讓 Mac 的效能，成為值得欣賞的儀表。</strong></p>
 <p align="center">三連圓形儀表 · 12 種風格 · macOS 原生應用程式</p>
 <p align="center"><a href="README.md">English</a> · <a href="README.ja.md">日本語</a> · 繁體中文</p>
 
-> **正在準備公開：** 目前此儲存庫僅包含說明文件及 MIT 授權條款。已準備的應用程式原始碼、介面預覽及 DMG 尚未上傳，GitHub 發行版本也尚未提供下載。
+[**下載 DMG →**](https://github.com/Hamzimer/Mac-Systemo-Monitor/releases/latest) · [回報問題](https://github.com/Hamzimer/Mac-Systemo-Monitor/issues)
+
+![CPU、GPU 與記憶體三連儀表](assets/widget.png)
+
+*以應用程式的 SwiftUI 畫面及實測資料繪製的介面預覽，並非桌面螢幕截圖。數值會隨 Mac 的狀態而變動。*
 
 ## 讓效能成為桌面風景
 
 將 CPU、GPU 與記憶體整合為一組懸浮儀表。選擇適合桌面的玻璃、金屬或霓虹材質，隨時掌握即時活動；需要更多工作空間時，還能縮小至選單列。
 
 - **12 種風格，同一份即時資料。** 從通透玻璃到經典指針，依心情切換。
-- **只有儀表，懸浮桌面。** 外圍透明；拖曳本體即可移動，MEM 右下角握柄可調整大小。
+- **只有儀表，懸浮桌面。** 外圍透明；拖曳本體即可移動，右下角握柄可調整大小。
 - **看見 CPU 核心活動。** 顯示整體使用率與各邏輯核心的負載。
-- **呈現可取得的 GPU 實測值。** 支援整體、算繪與分塊處理使用率；無法取得時顯示「—」。
+- **呈現可取得的 GPU 實測值。** 支援整體、算繪與分塊處理使用率；無法取得的數值顯示「—」。
 - **記憶體細節一目了然。** 已用與總容量、應用程式、固定、壓縮、快取及交換空間。
 - **選單列持續監測。** 按 ⌘M，切換為 CPU、GPU 與記憶體的百分比及迷你圖表。
 - **原生、本機運作。** 使用 SwiftUI 與 AppKit，無第三方執行環境、無須帳號，也不會上傳監測資料。
 
 ## 找到你的風格
+
+![12 種已實作風格的預覽](assets/styles.png)
+
+*這些是實際介面的繪製預覽，並非概念設計圖。支援動畫的風格會在執行時動起來。*
 
 | 風格 | 特色 |
 | --- | --- |
@@ -34,15 +44,15 @@
 | Classic Instrument | 指針、金屬與螺絲細節 |
 | Space Black | 深黑底色與發光輪廓 |
 
-介面預覽將隨應用程式檔案一起上傳，並清楚區分繪製預覽與桌面螢幕截圖。
+## 安裝
 
-## 系統需求與發佈狀態
+需要 **Apple Silicon Mac 與 macOS 14 或更新版本**。此版本不支援 Intel Mac。
 
-已準備的版本為 **HUD Systemo Monitor 5.1.3**，需要 **Apple Silicon Mac 與 macOS 14 或更新版本**，不支援 Intel Mac。目前應用程式選單使用日文；說明文件提供英文、日文與繁體中文。
+1. 從 [Releases](https://github.com/Hamzimer/Mac-Systemo-Monitor/releases/latest) 下載 `HUD-Systemo-Monitor.dmg`。
+2. 先以 ⌘Q 結束舊版，開啟 DMG，將 **HUD Systemo Monitor.app** 拖入 **Applications**。
+3. 開啟複製後的應用程式。
 
-公開後將透過 [Releases](https://github.com/Hamzimer/Mac-Systemo-Monitor/releases) 提供 DMG 與 SHA-256 校驗碼。先以 ⌘Q 結束舊版，開啟 DMG，再將 **HUD Systemo Monitor.app** 拖入 **Applications**。
-
-已準備的應用程式採用臨時簽章，**尚未使用 Developer ID 簽章或完成公證**，因此 macOS 可能阻擋下載的副本。
+目前採用臨時簽章，**尚未使用 Developer ID 簽章或完成公證**，因此 macOS 可能阻擋下載的副本。也可以從原始碼在本機建置。發行版本附有 `SHA256SUMS.txt`，可用於檢查檔案完整性。
 
 ## 操作
 
@@ -54,30 +64,59 @@
 | 選擇風格 | 右鍵開啟風格子選單；選擇會自動儲存 |
 | 縮小至選單列 | ⌘M，或右鍵選單的最小化功能 |
 | 還原 | 點選選單列的讀數，再選擇顯示監視器 |
-| 詳細資訊 | 右鍵開啟詳細視窗 |
+| 詳細資訊 | 右鍵開啟詳細視窗，查看 CPU 核心、GPU 處理、記憶體、儲存空間及網路 |
 | 保持最上層 | 「顯示」選單中的置頂功能 |
 | 結束 | ⌘Q |
 
+目前應用程式選單使用日文。說明文件提供英文、日文與繁體中文；本次發行尚未包含應用程式介面的語言切換。
+
 ## 資料與限制
 
-數值每 **1 秒**更新，每個項目最多保留 **60 筆歷史資料**。CPU 下方直條代表各邏輯核心目前的使用率；GPU 與記憶體直條代表近期歷史。詳細視窗另提供儲存空間與網路介面合計收發速率。
+| 項目 | 可取得的資訊 | 限制 |
+| --- | --- | --- |
+| CPU | 整體及各邏輯核心使用率 | 並非實體核心拓樸顯示 |
+| GPU | 整體、算繪、分塊處理使用率；可讀取時顯示硬體核心數 | **無法取得各實體 GPU 核心的使用率**，不會以推估活動冒充實測 |
+| 記憶體 | 已用、總容量、應用程式、固定、壓縮、快取與交換空間 | 分類可能與其他系統工具不同 |
+| 儲存空間 | 詳細視窗中的容量及已用空間 | 使用個人資料夾所在卷宗的檔案系統統計 |
+| 網路 | 詳細視窗中的介面合計收發速率 | 虛擬或 VPN 介面可能造成重複計算 |
 
-**無法取得各實體 GPU 核心的使用率。** 可讀取硬體核心數不代表可量測各核心負載。GPU 計數器是否可用取決於機型與 macOS，未取得的數值會顯示「—」。溫度、風扇轉速及時脈尚未實作。虛擬或 VPN 網路介面可能造成重複計算。
+數值每 **1 秒**更新，每個項目最多保留 **60 筆歷史資料**。CPU 下方的直條代表各邏輯核心目前的使用率；GPU 與記憶體的直條代表近期歷史資料。
 
-Liquid Dynamic、Aurora 與 Depth Glass 提供裝飾性波紋，波紋高度會隨使用率變化。縮小或隱藏應用程式時，波紋停止定期繪製；也支援 macOS 的「減少動態效果」。選單列的監測資料仍會持續更新。
+Liquid Dynamic、Aurora 與 Depth Glass 提供裝飾性波紋動畫，波紋高度會隨使用率變化。縮小或隱藏應用程式時，波紋停止定期繪製；也支援 macOS 的「減少動態效果」。縮小期間仍會持續更新選單列的監測資料。
 
-限制歷史資料長度與暫停隱藏動畫可減少處理工作，但整體 GUI 記憶體用量尚未測量，因此不宣稱已達最低記憶體用量。
+GPU 計數器是否可用取決於機型與 macOS。溫度、風扇轉速及時脈尚未實作。限制歷史資料長度與暫停隱藏動畫是降低負載的設計，並不代表已達到最低整體記憶體用量。
+
+## 從原始碼建置
+
+安裝 Xcode 與命令列工具後，在 Apple Silicon Mac 上執行：
+
+```sh
+bash build.sh ./build
+open "build/HUD Systemo Monitor.app"
+```
+
+若只想取得三次感測讀數而不開啟儀表：
+
+```sh
+"build/HUD Systemo Monitor.app/Contents/MacOS/HUDSystemoMonitor" --sample
+```
+
+五個 Swift 檔案分別處理資料取得、有限長度的歷史模型、共用儀表繪製、視窗與選單，以及啟動流程。本機建置會加上臨時簽章。
 
 ## 驗證與參與
 
-已準備的原始碼在 **M2 Max、32 GB 記憶體的 Mac** 上完成建置與 CPU、GPU、記憶體實測，並檢查全部 12 種風格的繪製與外圍透明度。自動檢查涵蓋原生選單項目的穩定性、縮放座標計算及握柄點擊判定。
+已在 **M2 Max、32 GB 記憶體的 Mac** 上建置並讀取 CPU、GPU 與記憶體實測值，另已檢查全部 12 種風格的繪製及外圍透明度。隨附的自動檢查涵蓋原生選單項目的穩定性、縮放座標計算與握柄點擊判定：
 
-受限於開發環境，桌面上的連續拖曳、選單選取、縮小與還原，以及 Dock 圖示外觀，尚未完成手動驗證。
+```sh
+bash tests/run.sh
+```
 
-歡迎透過 [Issue](https://github.com/Hamzimer/Mac-Systemo-Monitor/issues) 提出視覺改進或硬體相容性回報。請提供 Mac 機型、macOS 版本、應用程式版本及重現步驟，並先移除截圖或記錄中的個人資訊。
+這些檢查不會模擬實際滑鼠操作。受限於開發環境，桌面上的連續拖曳、選單選取、縮小與還原，以及 Dock 圖示外觀，尚未完成手動驗證；整體 GUI 記憶體用量也尚未測量。
 
-**如果你喜歡這款儀表，歡迎給一顆 Star，讓更多 Mac 使用者發現它。**
+歡迎透過 [Issue](https://github.com/Hamzimer/Mac-Systemo-Monitor/issues) 提出視覺改進或硬體相容性回報。請提供 Mac 機型、macOS 版本、應用程式版本與重現步驟，並先移除截圖或記錄中的個人資訊。
 
-## 授權條款
+**如果這款儀表讓你的桌面更實用，歡迎給一顆 Star，讓更多 Mac 使用者發現它。**
+
+## License
 
 [MIT](LICENSE) · Copyright © 2026 Hamzimer.

@@ -1,28 +1,38 @@
-<h1 align="center">Mac Systemo Monitor</h1>
+<p align="center"><img src="Resources/AppIcon.png" width="128" alt="HUD Systemo Monitor icon"></p>
+
+<h1 align="center">HUD Systemo Monitor</h1>
 <p align="center"><strong>Your Mac’s performance, in an instrument worth looking at.</strong></p>
-<p align="center">Three connected gauges · 12 styles · Native macOS</p>
+<p align="center">Three connected gauges · 12 visual styles · A native macOS widget</p>
 <p align="center">English · <a href="README.ja.md">日本語</a> · <a href="README.zh-Hant.md">繁體中文</a></p>
 
-![macOS](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)
+![macOS 14+](https://img.shields.io/badge/macOS-14%2B-111111?logo=apple)
 ![Apple Silicon](https://img.shields.io/badge/Apple-Silicon-00bde7)
 ![Swift](https://img.shields.io/badge/Swift-native-f05138?logo=swift&logoColor=white)
-![License](https://img.shields.io/badge/license-MIT-green)
+![12 styles](https://img.shields.io/badge/styles-12-a65cff)
 
-> **Publication in progress:** this repository currently contains documentation and the MIT license. The prepared app source, interface previews and DMG have not yet been uploaded. A downloadable GitHub release is not available yet.
+[**Download the DMG →**](https://github.com/Hamzimer/Mac-Systemo-Monitor/releases/latest) · [Report an issue](https://github.com/Hamzimer/Mac-Systemo-Monitor/issues)
 
-## Performance you can see
+![Connected CPU, GPU and memory gauges](assets/widget.png)
 
-Bring CPU, GPU and memory activity onto your desktop as a floating instrument cluster. Choose glass, brushed metal, neon or analog needles, then tuck the monitor into the menu bar when you need the space.
+*Interface preview rendered from the app’s SwiftUI views using measured telemetry. This is not a desktop screenshot; readings vary with your Mac.*
 
-- **12 visual styles.** One set of live measurements, twelve ways to make it yours.
-- **A floating silhouette.** Transparent outside the gauges. Drag to move; use the MEM gauge’s lower-right grip to resize.
-- **CPU core activity.** Overall usage and activity for each logical CPU core.
-- **GPU readings without invented detail.** Device, renderer and tiler utilization where available; unsupported readings show “—”.
-- **Memory at a glance.** Used and total RAM, with application, wired, compressed, cache and swap details.
-- **Menu-bar mode.** Press ⌘M to keep CPU, GPU and memory readouts and mini graphs visible.
-- **Native and local.** SwiftUI and AppKit, no third-party runtime dependencies, no account and no telemetry uploads.
+## Make performance visible
 
-## Twelve materials, one instrument
+CPU, GPU and memory share one floating instrument cluster. Follow live activity in three circular gauges, choose a material that fits your desktop, and tuck the monitor into the menu bar when you need the space.
+
+- **12 looks, one monitor.** Glass, aluminum, neon, monochrome and analog instruments share the same live data.
+- **A floating shape.** The area outside the gauges is transparent. Drag the instrument to move it; use the lower-right grip to resize it.
+- **Live CPU detail.** See overall CPU use and activity for each logical CPU core.
+- **Honest GPU readings.** Device, renderer and tiler utilization where available. Unsupported values show “—”.
+- **Useful memory detail.** Used and total RAM, application memory, wired memory, compression, cache and swap.
+- **A compact menu-bar view.** Minimize with ⌘M to keep CPU, GPU and memory percentages and mini graphs within reach.
+- **Native and local.** SwiftUI + AppKit, no third-party runtime dependencies, no account and no telemetry uploads.
+
+## Find your style
+
+![All twelve styles rendered by the app](assets/styles.png)
+
+*Rendered UI previews, not concept artwork. Animated styles move in the running app.*
 
 | Style | Character |
 | --- | --- |
@@ -34,54 +44,83 @@ Bring CPU, GPU and memory activity onto your desktop as a floating instrument cl
 | Monochrome Elegance | Silver and black instruments |
 | Aurora | Blue, purple and green light with moving waves |
 | Ultra Minimal | A white frame and clear essentials |
-| Frosted Blur | Soft translucent material |
+| Frosted Blur | Soft, translucent material |
 | Depth Glass | Layered reflections and luminous depth |
 | Classic Instrument | Analog needles, metal and screws |
 | Space Black | Deep black with illuminated contours |
 
-Interface previews will be added with the app files. Preview renders will be labeled separately from desktop screenshots.
+## Install
 
-## Requirements and availability
+Requires **Apple Silicon and macOS 14 or later**. Intel Macs are not supported by this build.
 
-The prepared build is **HUD Systemo Monitor 5.1.3**, for **Apple Silicon Macs running macOS 14 or later**. Intel Macs are not supported by that build. Menus currently use Japanese; these documents are available in English, Japanese and Traditional Chinese.
+1. Download `HUD-Systemo-Monitor.dmg` from [Releases](https://github.com/Hamzimer/Mac-Systemo-Monitor/releases/latest).
+2. Quit any older copy with ⌘Q, open the DMG and drag **HUD Systemo Monitor.app** into **Applications**.
+3. Open the copied app.
 
-Once published, the DMG and SHA-256 checksum will be available under [Releases](https://github.com/Hamzimer/Mac-Systemo-Monitor/releases). Quit an older copy with ⌘Q, open the DMG, and drag **HUD Systemo Monitor.app** into **Applications**.
-
-The prepared app is ad-hoc signed, **not Developer ID signed or notarized**. macOS may block a downloaded copy.
+The current build is ad-hoc signed, **not Developer ID signed or notarized**. macOS may block a downloaded copy. Building locally is an alternative. The release includes `SHA256SUMS.txt` for file-integrity checks.
 
 ## Controls
 
 | Action | Control |
 | --- | --- |
-| Move | Drag the gauge body |
+| Move | Drag the body of the gauges |
 | Resize | Drag the diagonal grip at the lower-right of MEM |
 | Alternative resizing | Option + scroll, or right-click → smaller / larger |
 | Choose a style | Right-click → style submenu; selection is saved |
-| Menu-bar mode | ⌘M or right-click → minimize |
+| Menu-bar mode | ⌘M or right-click → minimize to menu bar |
 | Restore | Click the menu-bar readout → show monitor |
-| More detail | Right-click → details |
+| More detail | Right-click → details; CPU cores, GPU engines, RAM, storage and network |
 | Keep on top | View menu → always on top |
 | Quit | ⌘Q |
 
-## Measurements, clearly defined
+The app’s menus are currently in Japanese. These three README files document the same controls in English, Japanese and Traditional Chinese; app-interface localization is not included in this release.
 
-Readings refresh every **1 second** with at most **60 history samples per metric**. CPU bars show current logical-core activity; GPU and memory bars show recent history. The details view adds storage use and interface-aggregated network rates.
+## What the data means
 
-**Physical GPU per-core utilization is unavailable.** A readable hardware core count is not a per-core load measurement. GPU counters vary by hardware and macOS; missing data is displayed as “—”. Temperature, fan speed and clock frequency are not implemented. Virtual or VPN network interfaces can cause double counting.
+| Metric | Available | Limit |
+| --- | --- | --- |
+| CPU | Total use and per-logical-core activity | Logical cores, not a claim of physical-core topology |
+| GPU | Device, renderer and tiler utilization; hardware core count where readable | **Physical GPU per-core utilization is unavailable**; no estimated core activity is fabricated |
+| Memory | Use, total, application, wired, compressed, cache and swap | Different system tools may categorize memory differently |
+| Storage | Capacity and used space in the details view | Home-volume filesystem statistics |
+| Network | Interface-aggregated receive/send rate in the details view | Virtual/VPN interfaces can cause double counting |
 
-Liquid Dynamic, Aurora and Depth Glass include decorative waves whose level follows utilization. Wave redraws pause while minimized or hidden, and Reduce Motion is respected. Menu-bar measurements continue while minimized.
+Metrics refresh every **1 second**. History is capped at **60 samples per metric**. CPU bars represent current logical-core use; GPU and memory bars represent recent history.
 
-Bounded history and paused hidden animations help limit work. Full GUI memory usage has not been benchmarked, so this project does not claim minimum RAM usage.
+Liquid Dynamic, Aurora and Depth Glass add decorative wave motion whose level follows utilization. These animations pause when the widget is minimized or the app is hidden. Reduce Motion is respected. Menu-bar measurements continue while minimized.
 
-## Validation and feedback
+GPU counters depend on hardware and macOS availability. Temperature, fan speed and clock frequency are not implemented. There is no claim of minimum full-app RAM usage; bounded history and paused hidden animations are implementation choices, not a benchmark.
 
-The prepared source was built and CPU, GPU and memory sampled on an **M2 Max Mac with 32 GB RAM**. Rendering checks covered all 12 styles and transparent outer pixels. Automated checks cover native menu-object stability, resize geometry and grip hit testing.
+## Build from source
 
-Manual desktop verification of continuous mouse dragging, menu selection, minimize/restore and Dock icon appearance remains outstanding in the restricted development environment.
+Install Xcode with its command-line tools, then run on an Apple Silicon Mac:
 
-Have a refinement or compatibility report? [Open an issue](https://github.com/Hamzimer/Mac-Systemo-Monitor/issues) with your Mac model, macOS version, app version and reproduction steps. Remove personal details from screenshots and logs.
+```sh
+bash build.sh ./build
+open "build/HUD Systemo Monitor.app"
+```
 
-**If you like the idea, a star helps other Mac users discover it.**
+For a three-sample sensor check without launching the widget:
+
+```sh
+"build/HUD Systemo Monitor.app/Contents/MacOS/HUDSystemoMonitor" --sample
+```
+
+The five Swift files separate sensor acquisition, the bounded-history model, shared gauge rendering, AppKit window/menu behavior and the entry point. Build output is ad-hoc signed locally.
+
+## Verification and contributions
+
+The app was built and its CPU, GPU and memory readings sampled on an **M2 Max Mac with 32 GB RAM**. Previous rendering checks covered all 12 styles and transparent outer pixels. Native menu-object stability, resize geometry and grip hit testing have automated checks included here:
+
+```sh
+bash tests/run.sh
+```
+
+Those checks do not exercise physical mouse interaction. Manual desktop verification of resizing, menu selection, minimize/restore and Dock icon appearance remains outstanding in the restricted development environment. Full GUI memory usage has not been benchmarked.
+
+Have a visual refinement or a hardware compatibility report? [Open an issue](https://github.com/Hamzimer/Mac-Systemo-Monitor/issues) with your Mac model, macOS version, app version and steps to reproduce. Remove personal information from any screenshots or logs.
+
+**If this makes your desktop more useful, a star helps other Mac users discover it.**
 
 ## License
 

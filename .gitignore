@@ -1,0 +1,8 @@
+# Local build and release outputs
+/build/
+/dist/
+*.app/
+.DS_Store
+*.dSYM/
+.swiftpm/
+.build/
