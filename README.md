@@ -73,7 +73,7 @@ The current build is ad-hoc signed, **not Developer ID signed or notarized**. ma
 | Keep on top | View menu → always on top |
 | Quit | ⌘Q |
 
-The app’s menus are currently in Japanese. These three README files document the same controls in English, Japanese and Traditional Chinese; app-interface localization is not included in this release.
+**UI languages:** 日本語 / English / 繁體中文. Right-click the widget → Language, or use View → Language. Follow System is also available. Changes apply without restarting and are saved for the next launch. Menus, detail labels, tooltips and accessibility hints are translated; CPU/GPU/MEM and style names remain shared identifiers.
 
 ## What the data means
 
@@ -106,7 +106,7 @@ For a three-sample sensor check without launching the widget:
 "build/HUD Systemo Monitor.app/Contents/MacOS/HUDSystemoMonitor" --sample
 ```
 
-The five Swift files separate sensor acquisition, the bounded-history model, shared gauge rendering, AppKit window/menu behavior and the entry point. Build output is ad-hoc signed locally.
+The six Swift files separate sensor acquisition, the bounded-history model, shared gauge rendering, AppKit window/menu behavior, localization and the entry point. Build output is ad-hoc signed locally.
 
 ## Verification and contributions
 
@@ -116,7 +116,7 @@ The app was built and its CPU, GPU and memory readings sampled on an **M2 Max Ma
 bash tests/run.sh
 ```
 
-Those checks do not exercise physical mouse interaction. Manual desktop verification of resizing, menu selection, minimize/restore and Dock icon appearance remains outstanding in the restricted development environment. Full GUI memory usage has not been benchmarked.
+Checks now also deliver mouse-down, drag and mouse-up events through NSWindow to verify body movement and grip resizing while metrics update. Language-menu actions, persistence and all translation keys are checked. These synthetic events do not replace physical mouse testing. Manual desktop verification of resizing, menu selection, minimize/restore and Dock icon appearance remains outstanding in the restricted development environment. Full GUI memory usage has not been benchmarked.
 
 Have a visual refinement or a hardware compatibility report? [Open an issue](https://github.com/Hamzimer/Mac-Systemo-Monitor/issues) with your Mac model, macOS version, app version and steps to reproduce. Remove personal information from any screenshots or logs.
 

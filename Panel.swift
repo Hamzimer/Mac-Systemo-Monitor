@@ -54,6 +54,7 @@ enum MonitorStyle: String, CaseIterable, Identifiable {
 
 struct MonitorView: View {
     let monitor: Monitor
+    @AppStorage("displayLanguage") private var displayLanguage = "system"
     @AppStorage("monitorStyle") private var style = MonitorStyle.pureGlass
 
     var body: some View {
@@ -64,7 +65,8 @@ struct MonitorView: View {
                 .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .preferredColorScheme(style.light ? .light : .dark)
-        .accessibilityHint("ドラッグで移動。右下のハンドルをドラッグしてサイズ変更。右クリックでスタイル、最小化を操作できます。")
+        .id(displayLanguage)
+        .accessibilityHint(L("interactionHint"))
     }
 }
 
@@ -209,10 +211,10 @@ private struct Meter: View {
                         Spacer().frame(height: 12)
                     } else if metric == .cpu {
                         HistoryChart(values: monitor.data.cores.map(Optional.some), tint: tint, bars: true).frame(height: 12)
-                            .help("CPUコア別の現在の使用率")
+                            .help(L("cpuHelp"))
                     } else {
                         HistoryChart(values: Array(history.suffix(16)), tint: tint, bars: true).frame(height: 12)
-                            .help(metric == .gpu ? "GPU全体の直近16サンプル" : "メモリ使用率の直近16サンプル")
+                            .help(metric == .gpu ? L("gpuHistory") : L("memoryHistory"))
                     }
                 }
                 .frame(width: 157).offset(y: 2)
@@ -221,8 +223,8 @@ private struct Meter: View {
         .frame(width: 261, height: 261)
         .foregroundStyle(style.ink)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(metric.title)使用率 \(percent(value))")
-        .help(metric == .gpu ? "GPU全体の実測値。物理コア別の使用率はこのMacでは取得できません。" : metric.title)
+        .accessibilityLabel("\(metric.title) \(L("usage")) \(percent(value))")
+        .help(metric == .gpu ? L("gpuHelp") : metric.title)
     }
 
     private var faceColors: [Color] {
@@ -401,16 +403,17 @@ private struct ConnectedOutline: InsettableShape {
 }
 
 struct MonitorDetails: View {
+    @AppStorage("displayLanguage") private var displayLanguage = "system"
     @ObservedObject var monitor: Monitor
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 20) {
-                Text("GPU描画 \(percent(monitor.data.renderer)) · タイル \(percent(monitor.data.tiler))")
-                    .help("GPU物理コア別の使用率カウンターはこのMacでは取得できません。")
+                Text("GPU \(L("renderer")) \(percent(monitor.data.renderer)) · \(L("tiler")) \(percent(monitor.data.tiler))")
+                    .help(L("gpuHelp"))
                 Spacer()
-                Text("メモリ \(gigabytes(monitor.data.used)) / \(gigabytes(monitor.data.total))")
+                Text("\(L("memory")) \(gigabytes(monitor.data.used)) / \(gigabytes(monitor.data.total))")
             }
-            Text("圧縮 \(gigabytes(monitor.data.compressed)) · 固定 \(gigabytes(monitor.data.wired)) · キャッシュ \(gigabytes(monitor.data.cached)) · スワップ \(gigabytes(monitor.data.swap))")
+            Text("\(L("compressed")) \(gigabytes(monitor.data.compressed)) · \(L("wired")) \(gigabytes(monitor.data.wired)) · \(L("cached")) \(gigabytes(monitor.data.cached)) · \(L("swap")) \(gigabytes(monitor.data.swap))")
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 75))], spacing: 6) {
                 ForEach(Array(monitor.data.cores.enumerated()), id: \.offset) { index, value in
                     Text("C\(index + 1)  \(percent(value))").font(.system(size: 10, design: .monospaced))
@@ -421,7 +424,8 @@ struct MonitorDetails: View {
                 Spacer()
                 Text("↓ \(transferRate(monitor.data.download))  ↑ \(transferRate(monitor.data.upload))")
             }
-        }.font(.system(size: 10)).opacity(0.85)
+        }.font(.system(size: 12)).opacity(0.85)
+        .id(displayLanguage)
     }
 }
 

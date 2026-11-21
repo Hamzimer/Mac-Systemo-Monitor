@@ -9,8 +9,8 @@ enum Metric: Int, CaseIterable, Identifiable {
         case .cpu: "CPU"
         case .gpu: "GPU"
         case .memory: "MEM"
-        case .renderer: "描画"
-        case .tiler: "タイル"
+        case .renderer: L("renderer")
+        case .tiler: L("tiler")
         }
     }
     var color: Color {

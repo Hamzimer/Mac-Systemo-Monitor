@@ -32,13 +32,10 @@ MainActor.assumeIsolated {
 
     let host = WidgetHostingView(rootView: MonitorView(monitor: Monitor()))
     host.frame = NSRect(x: 0, y: 0, width: 840, height: 300)
-    host.viewDidMoveToWindow()
-    host.layout()
-    guard let grip = host.subviews.first(where: { $0 is ResizeGripView }) else {
-        fatalError("Missing resize grip")
-    }
-    let point = host.convert(NSPoint(x: grip.frame.midX, y: grip.frame.midY), to: host.superview)
+    let grip = host.interaction
+    let point = NSPoint(x: grip.gripRect.midX, y: grip.gripRect.midY)
     precondition(host.hitTest(point) === grip)
+    precondition(host.hitTest(NSPoint(x: 400, y: 150)) === grip)
     precondition(!grip.mouseDownCanMoveWindow)
-    print("Grip hit-testing, drag growth/shrinkage, fixed anchor, aspect ratio and screen bounds verified")
+    print("Input overlay hit-testing, drag growth/shrinkage, fixed anchor, aspect ratio and screen bounds verified")
 }

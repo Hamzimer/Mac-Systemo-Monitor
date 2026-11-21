@@ -6,29 +6,55 @@ final class WidgetWindow: NSWindow {
     override var canBecomeMain: Bool { true }
 }
 
-final class WidgetHostingView: NSHostingView<MonitorView> {
+// Keep AppKit input above SwiftUI. NSHostingView owns and rearranges its private
+// subviews, so adding a grip to the hosting view cannot reliably receive events.
+final class WidgetHostingView: NSView {
     var menuProvider: (() -> NSMenu)?
-    private let resizeGrip = ResizeGripView(frame: .zero)
+    let interaction = WidgetInteractionView(frame: .zero)
+    private let host: NSHostingView<MonitorView>
 
-    override func viewDidMoveToWindow() {
-        super.viewDidMoveToWindow()
-        if resizeGrip.superview == nil {
-            resizeGrip.toolTip = "ここをドラッグしてサイズ変更"
-            addSubview(resizeGrip)
-        }
-        needsLayout = true
+    init(rootView: MonitorView) {
+        host = NSHostingView(rootView: rootView)
+        super.init(frame: NSRect(x: 0, y: 0, width: 840, height: 300))
+        host.sizingOptions = []
+        host.frame = bounds
+        host.autoresizingMask = [.width, .height]
+        interaction.frame = bounds
+        interaction.autoresizingMask = [.width, .height]
+        addSubview(host)
+        addSubview(interaction, positioned: .above, relativeTo: host)
+        interaction.menuProvider = { [weak self] in self?.menuProvider?() ?? NSMenu() }
+        refreshLanguage()
     }
 
-    override func layout() {
-        super.layout()
-        let y = bounds.height * (isFlipped ? 0.75 : 0.25)
-        resizeGrip.frame = NSRect(x: bounds.width * 0.90 - 11, y: y - 11, width: 22, height: 22)
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func refreshLanguage() {
+        interaction.toolTip = L("interactionHint")
+        interaction.setAccessibilityLabel(L("interactionHint"))
     }
 
     override func hitTest(_ point: NSPoint) -> NSView? {
         let local = convert(point, from: superview)
-        if resizeGrip.superview != nil && resizeGrip.frame.contains(local) { return resizeGrip }
-        return super.hitTest(point)
+        return bounds.contains(local) ? interaction : nil
+    }
+
+    override var isOpaque: Bool { false }
+}
+
+final class WidgetInteractionView: NSView {
+    var menuProvider: (() -> NSMenu)?
+    private var drag: (frame: NSRect, start: NSPoint, resizing: Bool)?
+
+    var gripRect: NSRect {
+        NSRect(x: bounds.width * 0.90 - 16, y: bounds.height * 0.25 - 16, width: 32, height: 32)
+    }
+
+    override var isOpaque: Bool { false }
+    override var mouseDownCanMoveWindow: Bool { false }
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        bounds.contains(convert(point, from: superview)) ? self : nil
     }
 
     override func menu(for event: NSEvent) -> NSMenu? { menuProvider?() }
@@ -38,9 +64,6 @@ final class WidgetHostingView: NSHostingView<MonitorView> {
         NSMenu.popUpContextMenu(menu, with: event, for: self)
     }
 
-    override var isOpaque: Bool { false }
-    override var mouseDownCanMoveWindow: Bool { true }
-
     override func scrollWheel(with event: NSEvent) {
         guard event.modifierFlags.contains(.option), let window else {
             super.scrollWheel(with: event)
@@ -48,20 +71,17 @@ final class WidgetHostingView: NSHostingView<MonitorView> {
         }
         resizeWidget(window, by: exp(Double(event.scrollingDeltaY) * 0.015))
     }
-}
-
-final class ResizeGripView: NSView {
-    override var mouseDownCanMoveWindow: Bool { false }
-
     override func resetCursorRects() {
-        addCursorRect(bounds, cursor: .crosshair)
+        addCursorRect(bounds, cursor: .openHand)
+        addCursorRect(gripRect, cursor: .crosshair)
     }
 
     override func draw(_ dirtyRect: NSRect) {
+        let grip = gripRect
         let marks = NSBezierPath()
         for offset in stride(from: 0.0, through: 10.0, by: 5.0) {
-            marks.move(to: NSPoint(x: 5 + offset, y: 2))
-            marks.line(to: NSPoint(x: 20, y: 17 - offset))
+            marks.move(to: NSPoint(x: grip.minX + 8 + offset, y: grip.minY + 6))
+            marks.line(to: NSPoint(x: grip.minX + 23, y: grip.minY + 21 - offset))
         }
         NSColor.black.withAlphaComponent(0.5).setStroke()
         marks.lineWidth = 3
@@ -73,18 +93,32 @@ final class ResizeGripView: NSView {
 
     override func mouseDown(with event: NSEvent) {
         guard let window else { return }
-        let original = window.frame
-        let start = window.convertPoint(toScreen: event.locationInWindow)
-        let area = window.screen?.visibleFrame ?? original
-        NSCursor.crosshair.push()
-        defer { NSCursor.pop() }
-        while let next = NSApp.nextEvent(matching: [.leftMouseDragged, .leftMouseUp],
-                                          until: .distantFuture, inMode: .eventTracking, dequeue: true) {
-            let location = NSEvent.mouseLocation
-            let change = resizeScale(from: start, to: location, size: original.size)
-            window.setFrame(widgetFrame(original, factor: change, in: area), display: true)
-            if next.type == .leftMouseUp { break }
+        if event.modifierFlags.contains(.control) {
+            rightMouseDown(with: event)
+            return
         }
+        drag = (window.frame, window.convertPoint(toScreen: event.locationInWindow),
+                gripRect.contains(convert(event.locationInWindow, from: nil)))
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard let window, let drag else { return }
+        let location = window.convertPoint(toScreen: event.locationInWindow)
+        if drag.resizing {
+            let area = window.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1680, height: 1050)
+            let change = resizeScale(from: drag.start, to: location, size: drag.frame.size)
+            window.setFrame(widgetFrame(drag.frame, factor: change, in: area), display: true)
+        } else {
+            window.setFrameOrigin(NSPoint(x: drag.frame.minX + location.x - drag.start.x,
+                                          y: drag.frame.minY + location.y - drag.start.y))
+        }
+        needsDisplay = true
+        window.invalidateCursorRects(for: self)
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        mouseDragged(with: event)
+        drag = nil
     }
 }
 
@@ -138,29 +172,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         let app = NSMenuItem()
         bar.addItem(app)
         let appMenu = NSMenu()
-        appMenu.addItem(withTitle: "HUD Systemo Monitorを終了", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(withTitle: L("quitApp"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         app.submenu = appMenu
         let display = NSMenuItem()
         bar.addItem(display)
-        let menu = NSMenu(title: "表示")
+        let menu = NSMenu(title: L("view"))
         for (title, selector, key) in [
-            ("モニターを表示", #selector(showHUD), "1"),
-            ("メニューバーへ最小化", #selector(minimizeHUD), "m"),
-            ("詳細を表示", #selector(showDetails), "d"),
-            ("小さくする", #selector(shrinkHUD), "-"),
-            ("大きくする", #selector(enlargeHUD), "+"),
-            ("常に手前に表示", #selector(toggleFloating(_:)), "f")
+            (L("show"), #selector(showHUD), "1"),
+            (L("minimize"), #selector(minimizeHUD), "m"),
+            (L("details"), #selector(showDetails), "d"),
+            (L("smaller"), #selector(shrinkHUD), "-"),
+            (L("larger"), #selector(enlargeHUD), "+"),
+            (L("floating"), #selector(toggleFloating(_:)), "f")
         ] {
             let item = menu.addItem(withTitle: title, action: selector, keyEquivalent: key)
             item.target = self
         }
+        menu.addItem(.separator())
+        menu.addItem(languageMenuItem())
         display.submenu = menu
         NSApp.mainMenu = bar
     }
 
     func makeWidgetMenu() -> NSMenu {
         let menu = NSMenu(title: "Mac System Monitor")
-        let styles = NSMenu(title: "スタイル")
+        let styles = NSMenu(title: L("style"))
         let selected = UserDefaults.standard.string(forKey: "monitorStyle") ?? MonitorStyle.pureGlass.rawValue
         for style in MonitorStyle.allCases {
             let item = styles.addItem(withTitle: style.name, action: #selector(selectStyle(_:)), keyEquivalent: "")
@@ -168,22 +204,48 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
             item.representedObject = style.rawValue
             item.state = selected == style.rawValue ? .on : .off
         }
-        let styleItem = menu.addItem(withTitle: "スタイル", action: nil, keyEquivalent: "")
+        let styleItem = menu.addItem(withTitle: L("style"), action: nil, keyEquivalent: "")
         styleItem.submenu = styles
+        menu.addItem(languageMenuItem())
         menu.addItem(.separator())
         for (title, action) in [
-            ("詳細を表示", #selector(showDetails)),
-            ("小さくする", #selector(shrinkHUD)),
-            ("大きくする", #selector(enlargeHUD)),
-            ("常に手前に表示", #selector(toggleFloating(_:))),
-            ("メニューバーへ最小化", #selector(minimizeHUD))
+            (L("details"), #selector(showDetails)),
+            (L("smaller"), #selector(shrinkHUD)),
+            (L("larger"), #selector(enlargeHUD)),
+            (L("floating"), #selector(toggleFloating(_:))),
+            (L("minimize"), #selector(minimizeHUD))
         ] {
             let item = menu.addItem(withTitle: title, action: action, keyEquivalent: "")
             item.target = self
         }
         menu.addItem(.separator())
-        menu.addItem(withTitle: "終了", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "")
+        menu.addItem(withTitle: L("quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "")
         return menu
+    }
+
+    private func languageMenuItem() -> NSMenuItem {
+        let item = NSMenuItem(title: L("language"), action: nil, keyEquivalent: "")
+        let menu = NSMenu(title: L("language"))
+        for language in AppLanguage.allCases {
+            let choice = menu.addItem(withTitle: language.name, action: #selector(selectLanguage(_:)), keyEquivalent: "")
+            choice.target = self
+            choice.representedObject = language.rawValue
+            choice.state = AppLanguage.selection == language ? .on : .off
+        }
+        item.submenu = menu
+        return item
+    }
+
+    @objc func selectLanguage(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String, AppLanguage(rawValue: raw) != nil else { return }
+        UserDefaults.standard.set(raw, forKey: "displayLanguage")
+        buildMenu()
+        (window?.contentView as? WidgetHostingView)?.refreshLanguage()
+        detailsWindow?.title = "Mac System Monitor — \(L("detailsTitle"))"
+        if statusItem != nil {
+            removeStatus()
+            installStatus()
+        }
     }
 
     @objc private func selectStyle(_ sender: NSMenuItem) {
@@ -202,18 +264,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     @objc func showHUD() {
         if window == nil {
             let w = WidgetWindow(contentRect: NSRect(x: 0, y: 0, width: 840, height: 300),
-                                 styleMask: [.borderless, .resizable], backing: .buffered, defer: false)
+                                 styleMask: [.borderless], backing: .buffered, defer: false)
             w.title = "Mac System Monitor"
             w.isOpaque = false
             w.backgroundColor = .clear
             w.hasShadow = false
-            w.isMovableByWindowBackground = true
+            w.isMovableByWindowBackground = false
             w.isReleasedWhenClosed = false
             w.contentMinSize = NSSize(width: 420, height: 150)
             w.contentAspectRatio = NSSize(width: 840, height: 300)
             let content = WidgetHostingView(rootView: MonitorView(monitor: monitor))
             content.menuProvider = { [weak self] in self?.makeWidgetMenu() ?? NSMenu() }
-            content.sizingOptions = []
             w.contentView = content
             w.delegate = self
             w.center()
@@ -245,7 +306,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         if detailsWindow == nil {
             let content = MonitorDetails(monitor: monitor).padding(20).frame(minWidth: 600)
             let details = NSWindow(contentViewController: NSHostingController(rootView: content))
-            details.title = "Mac System Monitor — 詳細"
+            details.title = "Mac System Monitor — \(L("detailsTitle"))"
             details.isReleasedWhenClosed = false
             details.delegate = self
             details.center()
@@ -292,10 +353,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         guard statusItem == nil else { return }
         let item = NSStatusBar.system.statusItem(withLength: 270)
         let menu = NSMenu()
-        let restore = menu.addItem(withTitle: "モニターを表示", action: #selector(showHUD), keyEquivalent: "")
+        let restore = menu.addItem(withTitle: L("show"), action: #selector(showHUD), keyEquivalent: "")
         restore.target = self
         menu.addItem(.separator())
-        menu.addItem(withTitle: "終了", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: L("quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(.separator())
+        menu.addItem(languageMenuItem())
         item.menu = menu
         statusItem = item
         updateStatus()
@@ -312,7 +375,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         let image = makeStatusImage(data: data, history: monitor.history)
         image.isTemplate = false
         button.image = image
-        button.toolTip = "CPU \(percent(data.cpu)) · GPU \(percent(data.gpu)) · メモリ \(percent(data.ram)) — クリックして表示メニュー"
+        button.toolTip = "CPU \(percent(data.cpu)) · GPU \(percent(data.gpu)) · \(L("memory")) \(percent(data.ram)) — \(L("statusHelp"))"
         button.setAccessibilityLabel(button.toolTip)
     }
 
